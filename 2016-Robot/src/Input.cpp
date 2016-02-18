@@ -1,3 +1,5 @@
+//Written by Andrew Kuo
+//glhf	
 #include "WPILib.h"
 #include "X360Controller.cpp"
 #include "Sensors.cpp"
@@ -15,8 +17,9 @@ struct Input_Out
 	int triggerPressed, buttonPressed;
 	//Sensors
 	float returnGyroAngle;
-	float returnAccelX, returnAccelY, returnAccelZ;
-	float returnDistance;
+	float AccelX, AccelY, AccelZ;
+	double sonarDistance;
+	
 };
 
 class Input
@@ -52,11 +55,11 @@ public:
 		output.returnButtonPressed = xbOut.returnButtonPressed;
 		
 		//Retreving sensor info
-		output.returnGyroAngle = sensOut.returnGyroAngle;
-		output.returnAccelX = sensOut.returnAccelX;
-		output.returnAccelY = sensOut.returnAccelY;
-		output.returnAccelZ = sensOut.returnAccelZ;
-		output.returnDistance = sensOut.returnDistance;
+		out.returnGyroAngle = sensOut.returnGyroAngle;
+		out.AccelX = sensOut.AccelX;
+		out.AccelY = sensOut.AccelY;
+		out.AccelZ = sensOut.AccelZ;
+		out.sonarDistance = sensOut.sonarDistance;
 		
 		return output;
 	}
