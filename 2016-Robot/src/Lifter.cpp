@@ -2,8 +2,6 @@
 //created by Dexin Zhou
 struct Lifter_In
 {
-	//float zMovement;
-
 };
 struct Lifter_Out
 {
@@ -20,11 +18,10 @@ public:
 		int liftport=1;
 		int liftportb=2;
 		int stickport=1;
-
+		int stickliftbutton=1;
 	Lifter():
 m_lift(liftport),
 m_liftb(liftportb),
-
 m_stick(stickport)
 {
 		// Stuff
@@ -32,7 +29,7 @@ m_stick(stickport)
 	Lifter_Out Run(Lifter_In input)
 	{
 		Lifter_Out output;
-		output.liftamount=m_stick.GetY();
+		output.liftamount=m_stick.GetRawAxis(stickliftbutton);
 
 		m_lift.Set(output.liftamount);
 		m_liftb.Set(output.liftamount);

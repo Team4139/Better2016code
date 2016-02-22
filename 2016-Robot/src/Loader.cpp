@@ -2,11 +2,10 @@
 //created by Dexin Zhou
 struct Loader_In
 {
-	//float movement;
 };
 struct Loader_Out
 {
-bool loaddirection;
+int loaddirection;
 };
 class Loader
 {
@@ -20,9 +19,9 @@ public:
 	int loadport=1;
 	int loadportb=2;
 	int stickport=1;
-
+	int stickloadinbutton=1;
+	int stickloadoutbutton=2;
 	double loadspeed=0.5;
-	int direction=0;
 	Loader()
 {
 		m_loader(loadport),
@@ -35,15 +34,17 @@ public:
 	Loader_Out Run(Loader_In input)
 	{
 		Loader_Out output;
-		if (m_stick.GetRawButton(2)==1){
-			direction=1;
+		if (m_stick.GetRawButton(stickloadinbutton)==1){
+			output.loaddirection=1;
 		}
-		else if(m_stick.GetButton(2)==1){
-			direction=-1;
+		else if(m_stick.GetRawButton(stickloadoutbutton)==1){
+			output.loaddirection=-1;
+		}
+		else{
+			output.loaddirection=0;
 		}
 
-		m_loader.Set(loadspeed*direction);
-		output.loaddirection=direction;
+		m_loader.Set(loadspeed*output.loaddirection);
 		//SmartDashboard::PutNumber("load direction",output.loaddirection);
 		// Code here
 
