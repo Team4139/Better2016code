@@ -13,8 +13,8 @@ struct Input_Out
 {
 	//Controller
 	float returnX, returnY, returnRotation;
-	int turboMode;
-	int triggerPressed, buttonPressed;
+	int returnTurbo;
+	int returnRightTrigger, returnButtonPressed;
 	//Sensors
 	float returnGyroAngle;
 	float AccelX, AccelY, AccelZ;
@@ -39,7 +39,7 @@ public:
 		Input_Out output;
 		
 		X360Controller_In xbIn;
-		X360Controller_out xbOut;
+		X360Controller_Out xbOut;
 		Sensors_In sensIn;
 		Sensors_Out sensOut;
 		
@@ -51,7 +51,7 @@ public:
 		output.returnY = xbOut.returnY;
 		output.returnRotation = xbOut.returnRotation;
 		output.returnTurbo = xbOut.returnTurbo;
-		output.returnTriggerPressed = xbOut.returnTriggerPressed;
+		output.returnRightTrigger = xbOut.returnRightTrigger;
 		output.returnButtonPressed = xbOut.returnButtonPressed;
 		
 		//Retreving sensor info
