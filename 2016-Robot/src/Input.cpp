@@ -12,9 +12,10 @@ struct Input_In
 struct Input_Out
 {
 	//Controller
-	float returnX, returnY, returnRotation;
-	int returnTurbo;
-	int returnRightTrigger, returnButtonPressed;
+	float leftX, leftY, rightX, rightY;
+	float leftTrigger, rightTrigger;
+	bool leftBumper, rightBumper;
+	bool buttonX, buttonY, buttonA, buttonB;
 	//Sensors
 	float returnGyroAngle;
 	float AccelX, AccelY, AccelZ;
@@ -39,7 +40,7 @@ public:
 		Input_Out output;
 		
 		X360Controller_In xbIn;
-		X360Controller_Out xbOut;
+		X360Controller_out xbOut;
 		Sensors_In sensIn;
 		Sensors_Out sensOut;
 		
@@ -47,19 +48,25 @@ public:
 		xbOut = controller->Run(xbIn);
 		
 		//Retreving controller info
-		output.returnX = xbOut.returnX;
-		output.returnY = xbOut.returnY;
-		output.returnRotation = xbOut.returnRotation;
-		output.returnTurbo = xbOut.returnTurbo;
-		output.returnRightTrigger = xbOut.returnRightTrigger;
-		output.returnButtonPressed = xbOut.returnButtonPressed;
+		output.rightX = xbOut.rightX;
+		output.rightY = xbOut.rightY;
+		output.leftX = xbOut.leftX;
+		output.leftY = xbOut.leftY;
+		output.leftTrigger = xbOut.leftTrigger;
+		output.rightTrigger = xbOut.rightTrigger;
+		output.leftBumper = xbOut.leftBumper;
+		output.rightBumper = xbOut.rightBumper;
+		output.buttonY = xbOut.buttonY;
+		output.buttonX = xbOut.buttonX;
+		output.buttonB = xbOut.buttonB;
+		output.buttonA = xbOut.buttonA;
 		
 		//Retreving sensor info
-		out.returnGyroAngle = sensOut.returnGyroAngle;
-		out.AccelX = sensOut.AccelX;
-		out.AccelY = sensOut.AccelY;
-		out.AccelZ = sensOut.AccelZ;
-		out.sonarDistance = sensOut.sonarDistance;
+		output.returnGyroAngle = sensOut.returnGyroAngle;
+		output.AccelX = sensOut.AccelX;
+		output.AccelY = sensOut.AccelY;
+		output.AccelZ = sensOut.AccelZ;
+		output.sonarDistance = sensOut.sonarDistance;
 		
 		return output;
 	}
