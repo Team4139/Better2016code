@@ -2,6 +2,7 @@
 #include "Wheels.cpp"
 #include "Lifter.cpp"
 #include "Loader.cpp"
+#include "Shooter.cpp"
 
 struct Output_In
 {
@@ -9,9 +10,11 @@ struct Output_In
 	float xMovement, yMovement, rotation, gyroAngle;
 	int turboMode;
 	//Lifter
-	float zMovement;
+	float liftamount;
 	//Loader
-	float movement;
+	int loaddirection;
+	//Shooter
+	bool shooting;
 
 };
 struct Output_Out
@@ -24,12 +27,14 @@ private:
 	Wheels* wheels;
 	Lifter* lifter;
 	Loader* loader;
+	Shooter* shooter;
 public:
 	Output()
 	{
 		wheels = new Wheels();
 		lifter = new Lifter();
 		loader = new Loader();
+		shooter = new Shooter();
 	}
 	Output_Out Run(Output_In input)
 	{
@@ -41,22 +46,28 @@ public:
 		Lifter_Out lfOut;
 		Loader_In lIn;
 		Loader_Out lOut;
+		Shooter_In shIn;
+		Shooter_Out shOut;
 
 		wIn.xMovement = input.xMovement;
 		wIn.yMovement = input.yMovement;
 		wIn.rotation = input.rotation;
 		wIn.gyroAngle = input.gyroAngle;
-		wIn.TurboMode = input.turboMode;
+		wIn.turboMode = input.turboMode;
 
 		wOut = wheels->Run(wIn);
 
-		lfIn.zMovement = input.zMovement;
+		lfOut.liftamount = input.liftamount;
 
 		lfOut = lifter->Run(lfIn);
 
-		lIn.movement = input.movement;
+		lOut.loaddirection = input.loaddirection;
 
 		lOut = loader->Run(lIn);
+
+		shOut.shooting = input.shooting;
+
+		shOut = shooter->Run(shIn);
 
 		return output;
 	}
