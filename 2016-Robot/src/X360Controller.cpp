@@ -7,10 +7,10 @@ struct X360Controller_In{
 };
 
 struct X360Controller_Out{
-	float returnX, returnY, returnRotation = 0;
-	bool returnTurbo, returnRightTrigger = false;
-	int returnButtonPressed = 0; //Returns a int corresponding to current button
-								 //Returns 0 if no buttons are being pressed
+	float leftX, leftY, rightX, rightY = 0; //Joystick X and Y for each stick
+	float leftBumper, rightBumper = 0 //Left and Right bumpers (L2, R2)
+	bool leftTrigger, rightTrigger = false //Left and Right Triggers (L1, R1)
+	bool buttonX, buttonY, buttonA, buttonB = false //All four buttons
 };
 
 class X360Controller
@@ -44,33 +44,27 @@ public:
 	X360Controller_Out Run(X360Controller_In input)
 	{
 		X360Controller_Out output;
-		output.returnX = ApplyDZ(stick->GetRawAxis(0), DZ);
-		output.returnY = -ApplyDZ(stick->GetRawAxis(1), DZ);
+		//Left joystick
+		output.rightX = ApplyDZ(stick->GetRawAxis(0), DZ);
+		output.rightY = -ApplyDZ(stick->GetRawAxis(1), DZ);
 
-		//Rotation
-		output.returnRotation += stick->GetRawAxis(2); //Left Bumper I think
-		output.returnRotation += -stick->GetRawAxis(3); //Right Bumper I think
+		//Right joystick
+		output.leftX = ApplyDZ(stick->GetRawAxis(4), DZ);
+		output.leftY = -ApplyDZ(stick->GetRawAxis(5), DZ);
+		
+		//Rumpers (L2, R2)
+		output.leftBumper = stick->GetRawAxis(2);
+		output.rightBumper = stick->GetRawAxis(3);
 
-		//Turbo mode
-		output.returnTurbo = stick->GetRawButton(5); //Left trigger
+		//Triggers (R1, L1)
+		output.leftTrigger = stick->GetRawButton(5);
+		output.rightTrigger = stick->GetRawButton(6);
 
-		//Button controls - Only one button per cycle. Check if more
-		//buttons are necessary.
-		if(stick->GetRawButton(1)){ //Button A
-			output.returnButtonPressed = 1;
-		} else if(stick->GetRawButton(2)){ //Button B
-			output.returnButtonPressed = 2;
-		} else if(stick->GetRawButton(4)){ //Button Y
-			output.returnButtonPressed = 4;
-		} else if(stick->GetRawButton(3)){ //Button X
-			output.returnButtonPressed = 3;
-		}
-
-		//Just right trigger as both bumpers handle rotation, and left
-		//trigger handles turbo mode on or off
-		if(stick->GetRawButton(6)){
-			output.returnRightTrigger = true;
-		}
+		//Button controls
+		output.buttonY = stick->GetRawButton(4);
+		output.buttonX = stick->GetRawButton(3);
+		output.buttonB = stick->GetRawButton(2);
+		output.buttonA = stick->GetRawButton(1);
 
 		return output;
 	}
