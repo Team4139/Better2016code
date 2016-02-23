@@ -4,7 +4,7 @@
 struct Sensors_In
 {
 	bool resetGyro;
-	};
+};
 struct Sensors_Out
 {
 	float returnGyroAngle;
@@ -24,8 +24,9 @@ public:
 	Sensors()
 	{
 		//you do this
-	ultrasonic(0);
-	accel = new BuiltInAccelerometer(Accelerometer::kRange_4G);
+		uint32_t sonicchannel=ultrasonic.GetChannel();
+		ultrasonic(sonicchannel);
+		accel = new BuiltInAccelerometer(Accelerometer::kRange_4G);
 
 	}
 	Sensors_Out Run(Sensors_In input)
@@ -33,13 +34,13 @@ public:
 		Sensors_Out out;
 		out.sonarDistance = (ultrasonic.GetValue()) * valueTocm; //sensor returns a value from 0-4095 that is scaled to inches
 
-					//std::cout<<out.sonarDistance <<std::endl;
+		//std::cout<<out.sonarDistance <<std::endl;
 		out.AccelX = accel->GetX();
 		out.AccelY = accel->GetY();
 		out.AccelZ = accel->GetZ();
-					//SmartDashboard::PutNumber("accel x",out.AccelX);
-					//SmartDashboard::PutNumber("accel y",out.AccelY);
-					//SmartDashboard::PutNumber("accel z",out.AccelZ);
+		//SmartDashboard::PutNumber("accel x",out.AccelX);
+		//SmartDashboard::PutNumber("accel y",out.AccelY);
+		//SmartDashboard::PutNumber("accel z",out.AccelZ);
 
 		// code here
 
