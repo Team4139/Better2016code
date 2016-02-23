@@ -2,6 +2,7 @@
 #include "Wheels.cpp"
 #include "Lifter.cpp"
 #include "Loader.cpp"
+#include "Shooter.cpp"
 
 struct Output_In
 {
@@ -11,7 +12,7 @@ struct Output_In
 	//Lifter
 	float liftamount;
 	//Loader
-	float movement;
+	int loaddirection;
 	//shooter
 	bool shooting;
 
@@ -61,11 +62,13 @@ public:
 
 		lfOut = lifter->Run(lfIn);
 
-		lOut.loaddirection = input.movement;
+		lOut.loaddirection = input.loaddirection;
 
 		lOut = loader->Run(lIn);
 
 		shOut.shooting = input.shooting;
+
+		shOut = shooter->Run(shIn);
 
 		return output;
 	}
