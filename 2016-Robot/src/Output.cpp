@@ -48,23 +48,19 @@ public:
 		Shooter_Out shOut;
 		Shooter_In shIn;
 
-		wIn.xMovement = input.xMovement;
 		wIn.yMovement = input.yMovement;
 		wIn.rotation = input.rotation;
-		wIn.gyroAngle = input.gyroAngle;
 		wIn.turboMode = input.turboMode;
 
 		wOut = wheels->Run(wIn);
 
-		lfOut.liftamount = input.liftamount;
 
 		lfOut = lifter->Run(lfIn);
 
-		lOut.loaddirection = input.loaddirection;
 
 		lOut = loader->Run(lIn);
 
-		shOut.shooting = input.shooting;
+		shOut.shooting = input.spin;
 
 		shOut = shooter->Run(shIn);
 
