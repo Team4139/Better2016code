@@ -60,8 +60,6 @@ public:
 
 		lOut = loader->Run(lIn);
 
-		shOut.shooting = input.spin;
-
 		shOut = shooter->Run(shIn);
 
 		return output;

@@ -4,7 +4,7 @@ struct Vision_In
 };
 struct Vision_Out
 {
-	double cogX, cogY;
+	double cogX;
 };
 class VisionProcessing
 {
