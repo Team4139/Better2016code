@@ -40,7 +40,7 @@ public:
 		Input_Out output;
 		
 		X360Controller_In xbIn;
-		X360Controller_out xbOut;
+		X360Controller_Out xbOut;
 		Sensors_In sensIn;
 		Sensors_Out sensOut;
 		
