@@ -32,7 +32,7 @@ public:
 	{
 		wheels = new Wheels();
 		lifter = new Lifter();
-		loader = new Loader();
+		//loader = new Loader();
 		shooter = new Shooter();
 	}
 	Output_Out Run(Output_In input)
