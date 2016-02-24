@@ -15,7 +15,7 @@ public:
 {
 		SmartDashboard::init();
 }
-		Vision_Out Run(Vision_In input)
+	Vision_Out Run(Vision_In input)
 	{
 		Vision_Out output;
 		output.cogX = SmartDashboard::GetNumber("COG_X", 0.0);
