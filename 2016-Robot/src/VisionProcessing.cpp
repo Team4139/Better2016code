@@ -11,13 +11,14 @@ class VisionProcessing
 private:
 
 public:
-	VisionProcesing():
+	VisionProcesing()
+{
 		SmartDashboard::init();
-	Vision_Out Run(Vision_In input)
+}
+		Vision_Out Run(Vision_In input)
 	{
 		Vision_Out output;
 		output.cogX = SmartDashboard::GetNumber("COG_X", 0.0);
-		output.cogY = SmartDashboard::GetNumber("COG_Y", 0,0);
 		return output;
 	}
 };
