@@ -45,12 +45,12 @@ public:
 	{
 		X360Controller_Out output;
 		//Left joystick
-		output.rightX = ApplyDZ(stick->GetRawAxis(0), DZ);
-		output.rightY = -ApplyDZ(stick->GetRawAxis(1), DZ);
+		output.leftX = ApplyDZ(stick->GetRawAxis(0), DZ);
+		output.leftY = -ApplyDZ(stick->GetRawAxis(1), DZ);
 
 		//Right joystick
-		output.leftX = ApplyDZ(stick->GetRawAxis(4), DZ);
-		output.leftY = -ApplyDZ(stick->GetRawAxis(5), DZ);
+		output.rightX = ApplyDZ(stick->GetRawAxis(4), DZ);
+		output.rightY = -ApplyDZ(stick->GetRawAxis(5), DZ);
 		
 		//Triggers (L2, R2)
 		output.leftTrigger = stick->GetRawAxis(2);

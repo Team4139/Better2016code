@@ -1,78 +1,106 @@
 #include "WPILib.h"
-#include "Input.cpp"
-#include "Output.cpp"
-#include "VisionProcessing.cpp"
-
-class PiBot2016: public IterativeRobot
+#include "Joystick.h"
+#include "nt_Value.h"
+#include "Math.h"
+class Robot: public SampleRobot
 {
+	RobotDrive myRobot; // robot drive system
+	Joystick stick; // only joystick
+	Victor shooter;
+	Talon feederA;
+	Talon feederB;
+	Talon feederC;
+	Talon liftA;
+	Talon liftB;
+	bool isMoving=false;
+
 public:
-	//
-private:
-	Output* output;
-	Input* input;
-	Timer* timer;
-	int autonomousMethod, autonomousStage;
-	void RobotInit()
+	Robot() :
+		myRobot(4,3,2,1),
+		stick(5),
+		shooter(8),
+		feederA(0),
+		feederB(9),
+		feederC(7),
+		liftA(5),
+		liftB(6)
+{
+		myRobot.SetExpiration(0.1);
+		SmartDashboard::init();
+
+}
+	void OperatorControl()
 	{
-		output = new Output();
-		input  = new Input();
-		timer  = new Timer();
-	}
+		bool shoot=false;
+		while (IsOperatorControl() && IsEnabled())
+		{
+			myRobot.ArcadeDrive(stick.GetRawAxis(1), stick.GetRawAxis(4), false);
+
+			int feed = 0;
+			if(stick.GetRawButton(1)){
+				feed=1;
+				//Wait(0.25);
+			}
+			if(stick.GetRawButton(2)){
+				feed=2;
+				//Wait(0.25);
+			}
+			if(stick.GetRawButton(3)){
+				feed=0;
+				//Wait(0.25);
+			}
+			if(feed==1)
+			{
+				feederA.Set(0.4);
+				feederB.Set(0.4);
+				feederC.Set(0.4);
+			}
+			if(feed==2)
+			{
+				feederA.Set(-0.4);
+				feederB.Set(-0.4);
+				feederC.Set(-0.4);
+			}
+			if(feed==0)
+			{
+				feederA.Set(0);
+				feederB.Set(0);
+				feederC.Set(0);
+			}
 
 
-	void AutonomousInit()
-	{
-		timer->Stop();
-		timer->Reset();
-		autonomousMethod = 1; // Number corresponds to starting gate
-		autonomousStage  = 0; // 0: Not Started, 1: Moving Foreward, 2: Spinning, 3: Shooting
-	}
+			if(stick.GetRawButton(4))
+			{
+				shoot=!shoot;
+				Wait(0.25);
+			}
+			if(shoot)
+				shooter.Set(-0.8);
+			if(!shoot)
+				shooter.Set(0);
 
-	void AutonomousPeriodic()
-	{
-		Input_In aInputIn;
-		Input_Out aInputOut;
-		Output_In aOutputIn;
-		Output_Out aOutputOut;
+			if(stick.GetRawAxis(2)>0.2)
+			{
+				liftA.Set(0.25*stick.GetRawAxis(2));
+				liftB.Set(-0.25*stick.GetRawAxis(2));
+			}
+			if(stick.GetRawAxis(3)>0.2)
+			{
+				liftA.Set(-0.25*stick.GetRawAxis(3));
+				liftB.Set(0.25*stick.GetRawAxis(3));
+			}
+			if(stick.GetRawAxis(3)<0.2 && stick.GetRawAxis(2)<0.2)
+			{
+				liftA.Set(0);
+				liftB.Set(0);
+			}
 
-		aInputOut = input->Run(aInputIn);
-	}
 
-	void TeleopInit()
-	{
-		timer->Stop();
-		timer->Reset();
-	}
-
-	void TeleopPeriodic()
-	{
-		Input_In inputIn;
-		Input_Out inputOut;
-		Output_In outputIn;
-		Output_Out outputOut;
-
-		inputOut = input->Run(inputIn);
-
-		outputIn.xMovement=0;
-		outputIn.yMovement=inputOut.leftY;
-		outputIn.rotation=inputOut.rightX;
-		outputIn.gyroAngle=0;
-		outputIn.spin=false;
-		if(inputOut.buttonY){
-			outputIn.spin=!outputIn.spin;
-			Wait(0.5);
+			std::cout<<"2: "<<stick.GetRawAxis(2)<<"     3: "<<stick.GetRawAxis(3)<<std::endl;
+			Wait(0.005);
 		}
-		while(inputOut.buttonX)
-			outputIn.feederMovement=-1;
-		while(inputOut.buttonB)
-			outputIn.feederMovement=1;
-		outputIn.turboMode=0;
-	}
-
-	void TestPeriodic()
-	{
-
 	}
 };
 
-START_ROBOT_CLASS(PiBot2016)
+
+START_ROBOT_CLASS(Robot)
