@@ -1,11 +1,9 @@
 #include "WPILib.h"
 struct Vision_In
 {
-	bool shouldProcess;
 };
 struct Vision_Out
 {
-	bool isDetected;
 	double cogX, cogY;
 };
 class VisionProcessing
@@ -13,4 +11,13 @@ class VisionProcessing
 private:
 
 public:
+	VisionProcesing():
+		SmartDashboard::init();
+	Vision_Out Run(Vision_In input)
+	{
+		Vision_Out output;
+		output.cogX = SmartDashboard::GetNumber("COG_X", 0.0);
+		output.cogY = SmartDashboard::GetNumber("COG_Y", 0,0);
+		return output;
+	}
 };

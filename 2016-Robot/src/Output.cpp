@@ -9,12 +9,10 @@ struct Output_In
 	//Wheels
 	float xMovement, yMovement, rotation, gyroAngle;
 	int turboMode;
-	//Lifter
-	float liftamount;
-	//Loader
-	int loaddirection;
+	//Feeder
+	float feederMovement;
 	//shooter
-	bool shooting;
+	bool spin;
 
 
 };
