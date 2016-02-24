@@ -8,9 +8,9 @@ struct X360Controller_In{
 
 struct X360Controller_Out{
 	float leftX, leftY, rightX, rightY = 0; //Joystick X and Y for each stick
-	float leftTrigger, rightTrigger = 0 //Left and Right bumpers (L2, R2)
-	bool leftBumper, rightBumper = false //Left and Right Triggers (L1, R1)
-	bool buttonX, buttonY, buttonA, buttonB = false //All four buttons
+	float leftTrigger, rightTrigger = 0; //Left and Right bumpers (L2, R2)
+	bool leftBumper, rightBumper = false; //Left and Right Triggers (L1, R1)
+	bool buttonX, buttonY, buttonA, buttonB = false; //All four buttons
 };
 
 class X360Controller

@@ -51,7 +51,7 @@ private:
 		Output_In outputIn;
 		Output_Out outputOut;
 
-		Input_Out = input->Run(inputIn);
+		inputOut = input->Run(inputIn);
 
 		outputIn.xMovement=0;
 		outputIn.yMovement=inputOut.leftY;
