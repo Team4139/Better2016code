@@ -2,7 +2,7 @@
 //created by Dexin Zhou
 struct Shooter_In
 {
-	bool buttonA;
+	bool buttonY;
 };
 struct Shooter_Out
 {
@@ -14,10 +14,9 @@ private:
 
 public:
 		int shootport=8;
-		double shootspeed=1;
+		double shootspeed=0.8;
 		Shooter():
 m_shoot(shootport)
-
 {
 		// Stuff
 }
@@ -25,20 +24,12 @@ m_shoot(shootport)
 	Shooter_Out Run(Shooter_In input)
 	{
 		Shooter_Out output;
-if(input.buttonA==1){
+if(input.buttonY==1){
 		m_shoot.Set(shootspeed);
-		Wait(3);//    Wait seconds
-		if(input.buttonA==1){
+		Wait(1);//    Wait seconds
 		m_shoot.Set(0);
-		}
 	}
-
 		// Code here
-
 		return output;
 	}
 };
-
-
-
-

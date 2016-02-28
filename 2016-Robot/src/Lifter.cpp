@@ -2,38 +2,45 @@
 //created by Dexin Zhou
 struct Lifter_In
 {
+	float leftTrigger, rightTrigger;
 };
 struct Lifter_Out
 {
-double liftamount;
 };
 class Lifter
 {
-	Victor m_lift;
+	Victor m_lifta;
 	Victor m_liftb;
-	Joystick m_stick;
 private:
 
 public:
-		int liftport=1;
-		int liftportb=2;
-		int stickport=1;
-		int stickliftbutton=1;
+		int liftporta=5;
+		int liftportb=6;
+
 	Lifter():
-m_lift(liftport),
-m_liftb(liftportb),
-m_stick(stickport)
-{
+m_lifta(liftporta),
+m_liftb(liftportb)
+		{
 		// Stuff
 }
 	Lifter_Out Run(Lifter_In input)
 	{
 		Lifter_Out output;
-		output.liftamount=m_stick.GetRawAxis(stickliftbutton);
-
-		m_lift.Set(output.liftamount);
-		m_liftb.Set(output.liftamount);
-		//SmartDashboard::PutNumber("lift",output.liftamount);
+		if(input.leftTrigger>0.2)
+		{
+			m_lifta.Set(0.25*input.leftTrigger);
+			m_liftb.Set(-0.25*input.leftTrigger);
+		}
+		if(input.rightTrigger>0.2)
+		{
+			m_lifta.Set(-0.25*input.rightTrigger);
+			m_liftb.Set(0.25*input.rightTrigger);
+		}
+		if(input.rightTrigger<0.2 && input.leftTrigger<0.2)
+		{
+			m_lifta.Set(0);
+			m_liftb.Set(0);
+		}
 		// Code here
 
 		return output;
