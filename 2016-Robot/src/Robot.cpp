@@ -31,8 +31,12 @@ private:
 	bool doesEncoderWork; // Default is false because I'm assuming it doesn't
 	bool atTop; // True if the lifter arm has exceeded it's upper limit
 	bool atBottom; // True if the lifter arm has exceeded it's lower limit
-	double MAXVALUE; // Dummy value
-	double MINVALUE;   // Dummy value
+	double MAXVALUE; // Dummy value for lifter
+	double MINVALUE;   // Dummy value for lifter
+	double cogX; // X coordinate of detected object
+	int autoStage; // current stage of autonomous
+	float sonarDistance;
+	AnalogInput* sonic;
 
 	void RobotInit()
 	{
@@ -47,6 +51,7 @@ private:
 		encode     = new Encoder(0,1,false,Encoder::EncodingType::k4X);
 		outputTime = new Timer();
 		time       = new Timer();
+		sonic      = new AnalogInput(1); // 1 is temp value
 
 		robot->SetExpiration(0.1);
 		SmartDashboard::init();
@@ -55,6 +60,74 @@ private:
 		encode->SetDistancePerPulse(64);
 		encode->SetReverseDirection(true);
 		encode->SetSamplesToAverage(7);
+	}
+
+	void AutonomousInit()
+	{
+		time->Stop();
+		time->Reset();
+		autoStage=0;
+	}
+
+	void AutonomousPeriodic()
+	{
+		cogX=SmartDashboard::GetNumber("COG_X", 0.0);
+		if(false) // put true here to run autonomous
+		{
+			switch(autoStage)
+			{
+			case 0: // Initial stuff
+				// something to get the feeder off the ground or something
+				autoStage++;
+				break;
+			case 1: // Move forward for 5 seconds
+				robot->TankDrive(0.5, 0.5);
+				if(time->Get()>5)
+				{
+					autoStage++;
+					robot->TankDrive(0.0,0.0);
+					time->Reset();
+				}
+				break;
+			case 2: // Spin until the robot is pointing at the goal
+				if(cogX>165||cogX<155)
+					robot->TankDrive(0.2,-0.2);
+				if(!(cogX>165||cogX<155))
+					robot->TankDrive(0.0,0.0);
+				autoStage++;
+				break;
+			case 3: // Move forward until close enough to the goal
+				if(false) // Put true here if there is a sonar
+				{
+					sonarDistance=sonic->GetVoltage()/8;
+					if(sonarDistance>100) // 100 is a temp value
+						robot->TankDrive(0.3,0.3);
+					else if(sonarDistance<=100) // 100 is a temp value
+						robot->TankDrive(0.0,0.0);
+					if(cogX>165||cogX<155)
+					{
+						autoStage=2;
+						break;
+					}
+				}
+				autoStage++;
+				break;
+			case 4: // Fire the ball
+				shooter->Set(-0.8);
+				time->Reset();
+				if(time->HasPeriodPassed(10))
+				{
+					feederC->Set(0.4);
+					time->Reset();
+					if(time->HasPeriodPassed(1))
+					{
+						feederC->Set(0);
+						shooter->Set(0);
+					}
+				}
+				break;
+			}
+		}
 	}
 
 	void TeleopInit()
