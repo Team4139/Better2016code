@@ -11,7 +11,7 @@ class VisionProcessing
 private:
 
 public:
-	/*VisionProcesing()
+	VisionProcessing()
 {
 		SmartDashboard::init();
 }
@@ -21,5 +21,5 @@ public:
 		output.cogX = SmartDashboard::GetNumber("COG_X", 0.0);
 		return output;
 	}
-	*/
+
 };

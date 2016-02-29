@@ -21,6 +21,7 @@ class Robot: public SampleRobot
 	Talon liftB;    // Second motor raising and lowering the feeder
 	Encoder encode; // The mag-encoder on one of the lift motors
 	Timer outputTime; // Used to make the rate of console output more reasonable
+	Timer time;     // For autonomous
 
 public:
 	Robot() :
@@ -33,7 +34,8 @@ public:
 		liftA(5),
 		liftB(6),
 		encode(0, 1, false, Encoder::EncodingType::k4X),
-		outputTime()
+		outputTime(),
+		time()
 {
 		myRobot.SetExpiration(0.1);
 		SmartDashboard::init();
@@ -43,6 +45,37 @@ public:
 		encode.SetReverseDirection(true);
 		encode.SetSamplesToAverage(7);
 }
+
+	void Autonomous()
+	{
+		int autoState=0;
+		time.Reset();
+		time.Start();
+		while(IsAutonomous() && IsEnabled())
+		{
+			switch(autoState)
+			{
+			case 0:
+				// maybe a quick while loop to bring the lifter to the right height if it works
+				autoState++;
+				break;
+
+			case 1:
+				myRobot.ArcadeDrive(0.8, 0, false);
+				if(time.HasPeriodPassed(5)){ // Drives forward for 5 seconds
+					myRobot.ArcadeDrive(0,0,false);
+					time.Reset();
+					autoState++;
+					break;
+				}
+				//no break
+			default:
+				std::cout<<"Autonomous code has ended"<<std::endl;
+				break;
+			}
+		}
+	}
+
 	void OperatorControl()
 	{
 		bool shoot=false; // Whether or not the shooter wheel should be spinning
@@ -171,6 +204,8 @@ public:
 			Wait(0.005);
 		}
 	}
+
+
 };
 
 
