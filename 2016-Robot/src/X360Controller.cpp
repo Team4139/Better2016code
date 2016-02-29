@@ -1,6 +1,5 @@
 // 2016 Warren
 #include "WPILib.h"
-#include "Math.h"
 
 struct X360Controller_In{
 

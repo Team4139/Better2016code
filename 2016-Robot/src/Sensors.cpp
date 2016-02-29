@@ -1,5 +1,4 @@
 #include "WPILib.h"
-#include "Math.h"
 #include "AnalogInput.h"
 
 struct Sensors_In
