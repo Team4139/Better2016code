@@ -9,9 +9,9 @@ struct Loader_Out
 };
 class Loader
 {
-	Talon m_loadera;
-	Talon m_loaderb;
-	Talon m_loaderc;
+	Talon* m_loadera;
+	Talon* m_loaderb;
+	Talon* m_loaderc;
 
 private:
 
@@ -22,8 +22,8 @@ public:
 		m_loadera(0),
 		m_loaderb(7),
 		m_loaderc(9),
-		m_loadera.SetInverted(1);//moter are reverted
-		m_loaderc.SetInverted(1);
+		m_loadera->SetInverted(1);//moter are reverted
+		m_loaderc->SetInverted(1);
 		//You can sort this out
 }
 
@@ -40,9 +40,9 @@ public:
 		else if(input.buttonX==1){
 			feeddirection=0;
 		}
-		m_loadera.Set(loadspeed*feeddirection);
-		m_loaderb.Set(loadspeed*feeddirection);
-		m_loaderc.Set(loadspeed*feeddirection);
+		m_loadera->Set(loadspeed*feeddirection);
+		m_loaderb->Set(loadspeed*feeddirection);
+		m_loaderc->Set(loadspeed*feeddirection);
 		Wait(0.05);
 		// Code here
 
