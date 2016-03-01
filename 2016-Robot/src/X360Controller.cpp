@@ -6,7 +6,7 @@ struct X360Controller_In{
 };
 
 struct X360Controller_Out{
-	float leftX, leftY, rightX, rightY = 0; //Joystick X and Y for each stick
+	float yMovement, rotation=0;//Left Y-axis, Right X-axis
 	float leftTrigger, rightTrigger = 0; //Left and Right bumpers (L2, R2)
 	bool leftBumper, rightBumper = false; //Left and Right Triggers (L1, R1)
 	bool buttonX, buttonY, buttonA, buttonB = false; //All four buttons
@@ -44,12 +44,12 @@ public:
 	{
 		X360Controller_Out output;
 		//Left joystick
-		output.leftX = ApplyDZ(stick->GetRawAxis(0), DZ);
-		output.leftY = -ApplyDZ(stick->GetRawAxis(1), DZ);
+		//output.leftX = ApplyDZ(stick->GetRawAxis(0), DZ);
+		output.yMovement=ApplyDZ(stick->GetRawAxis(1),DZ);
 
 		//Right joystick
-		output.rightX = ApplyDZ(stick->GetRawAxis(4), DZ);
-		output.rightY = -ApplyDZ(stick->GetRawAxis(5), DZ);
+		output.rotation=ApplyDZ(stick->GetRawAxis(4),DZ);
+		//output.rightY = -ApplyDZ(stick->GetRawAxis(5), DZ);
 		
 		//Triggers (L2, R2)
 		output.leftTrigger = stick->GetRawAxis(2);
