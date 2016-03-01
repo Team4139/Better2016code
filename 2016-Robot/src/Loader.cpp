@@ -19,9 +19,9 @@ public:
 	double loadspeed=0.4;
 	Loader()
 {
-		m_loadera(0),
-		m_loaderb(7),
-		m_loaderc(9),
+		m_loadera=new Talon(0);
+		m_loaderb=new Talon(7);
+		m_loaderc=new Talon(9);
 		m_loadera->SetInverted(1);//moter are reverted
 		m_loaderc->SetInverted(1);
 		//You can sort this out

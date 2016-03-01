@@ -48,10 +48,10 @@ public:
 		xbOut = controller->Run(xbIn);
 		
 		//Retreving controller info
-		output.rightX = xbOut.rightX;
-		output.rightY = xbOut.rightY;
-		output.leftX = xbOut.leftX;
-		output.leftY = xbOut.leftY;
+		output.rightX = xbOut.rotation;
+		output.rightY = 0;
+		output.leftX = 0;
+		output.leftY = xbOut.yMovement;
 		output.leftTrigger = xbOut.leftTrigger;
 		output.rightTrigger = xbOut.rightTrigger;
 		output.leftBumper = xbOut.leftBumper;

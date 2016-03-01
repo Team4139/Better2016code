@@ -32,7 +32,7 @@ public:
 	{
 		wheels = new Wheels();
 		lifter = new Lifter();
-		//loader = new Loader();
+		loader = new Loader();
 		shooter = new Shooter();
 	}
 	Output_Out Run(Output_In input)
@@ -50,7 +50,7 @@ public:
 
 		wIn.yMovement = input.yMovement;
 		wIn.rotation = input.rotation;
-		wIn.turboMode = input.turboMode;
+
 
 		wOut = wheels->Run(wIn);
 
