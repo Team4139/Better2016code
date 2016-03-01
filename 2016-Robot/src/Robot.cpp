@@ -27,12 +27,15 @@ private:
 	Encoder* encode; // The mag-encoder on one of the lift motors
 	Timer* outputTime; // Used to make the rate of console output more reasonable
 	Timer* time;     // For autonomous
+	Timer* feedTime;
 	bool shoot; // Whether or not the shooter wheel should be spinning
 	bool doesEncoderWork; // Default is false because I'm assuming it doesn't
 	bool atTop; // True if the lifter arm has exceeded it's upper limit
 	bool atBottom; // True if the lifter arm has exceeded it's lower limit
-	double MAXVALUE; // Dummy value for lifter
-	double MINVALUE;   // Dummy value for lifter
+	double top;  // Post-calibration feeder arm upper limit
+	double bottom;// Post-calibration feeder arm lower limit
+	double FEED_DEADZONE;
+	double setting; // Current desired feeder angle
 	double cogX; // X coordinate of detected object
 	int autoStage; // current stage of autonomous
 	float sonarDistance;
@@ -52,14 +55,10 @@ private:
 		outputTime = new Timer();
 		time       = new Timer();
 		sonic      = new AnalogInput(1); // 1 is temp value
-
+		FEED_DEADZONE=5; // DUMMY VALUE
 		robot->SetExpiration(0.1);
 		SmartDashboard::init();
-		encode->SetMaxPeriod(0.1);
-		encode->SetMinRate(10);
-		encode->SetDistancePerPulse(64);
-		encode->SetReverseDirection(true);
-		encode->SetSamplesToAverage(7);
+		encode->SetDistancePerPulse(1);
 	}
 
 	void AutonomousInit()
@@ -139,8 +138,9 @@ private:
 		encode->Reset(); // Resets the encoder distance to 0
 		outputTime->Reset();
 		outputTime->Start();
-		MAXVALUE=100; // Dummy value
-		MINVALUE=0;   // Dummy value
+		feedTime->Reset();
+		feedTime->Start();
+		top=0;
 	}
 
 	void TeleopPeriodic()
@@ -149,6 +149,14 @@ private:
 		robot->ArcadeDrive(stick->GetRawAxis(1), stick->GetRawAxis(4), false);
 
 		int distance = encode->GetDistance();
+
+		if(stick->GetRawButton(7)){
+			bottom=encode->GetDistance();
+		}
+		if(stick->GetRawButton(8)){
+			top=encode->GetDistance();
+		}
+
 
 		// feed: current state of feeder. 0: Not moving. 1: Taking ball in. 2: Taking ball out
 		int feed = 0;
@@ -217,29 +225,41 @@ private:
 		}
 		if(doesEncoderWork)
 		{
+			double setting;
 			if(stick->GetRawAxis(2)>0.2&&!atBottom) // If left trigger is pressed more than 20% of full depression
 			{
 				// Move feeder arm down
 				liftA->Set(0.25*stick->GetRawAxis(2));
 				liftB->Set(-0.25*stick->GetRawAxis(2)); // liftB is opposite of liftA
+				setting=encode->GetDistance();
 			}
 			if(stick->GetRawAxis(3)>0.2&&!atTop) // If right trigger is pressed more than 20% of full depression
 			{
 				// Move feeder arm up
 				liftA->Set(-0.25*stick->GetRawAxis(3));
 				liftB->Set(0.25*stick->GetRawAxis(3));
+				setting=encode->GetDistance();
 			}
 			if(stick->GetRawAxis(3)<0.2 && stick->GetRawAxis(2)<0.2) // If neither trigger is pressed more than 20%
 			{
 				// Set feeder arm to not move up/down
-				liftA->Set(0);
-				liftB->Set(0);
+				double current = encode->GetDistance();
+				if(current>setting-FEED_DEADZONE)
+				{
+					liftA->Set(-0.1*stick->GetRawAxis(3));
+					liftB->Set(0.1*stick->GetRawAxis(3));
+				}
+				if(current<=setting-FEED_DEADZONE)
+				{
+					liftA->Set(0.0);
+					liftB->Set(0.0);
+				}
 			}
-			if(encode->GetDistance()>=MAXVALUE)
+			if(encode->GetDistance()>=top)
 				atTop=true;
-			if(encode->GetDistance()<=MINVALUE)
+			if(encode->GetDistance()<=bottom)
 				atBottom=true;
-			if(encode->GetDistance()<MAXVALUE&&encode->GetDistance()>MINVALUE)
+			if(encode->GetDistance()<top&&encode->GetDistance()>bottom)
 			{
 				atTop=false;
 				atBottom=false;
@@ -250,11 +270,12 @@ private:
 		if(outputTime->HasPeriodPassed(1)) // Only returns true once every second
 		{
 			if(doesEncoderWork) // Output current measured distance of the encoder
-				std::cout<<distance<<std::endl;
+				std::cout<<encode->GetDistance()<<std::endl;
 			if(atTop) // Print an error if the encoder has moved too far
 				std::cout<<"The lifter arm has exceeded it's upper limit!"<<std::endl;
 			if(atBottom)
 				std::cout<<"The lifter arm has exceeded it's lower limit!"<<std::endl;
+			std::cout<<"Top is: "<<top<<std::endl<<"Bottom is: "<<bottom<<std::endl;
 		}
 
 		Wait(0.005);
