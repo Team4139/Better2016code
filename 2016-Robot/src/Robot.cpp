@@ -43,6 +43,8 @@ private:
 	AnalogInput* sonic;
 	Timer* shooterTime;
 	PIDController* feederPID;
+	PIDSource* feederInput;
+	PIDOutput* feederOutput;
 
 	void RobotInit()
 	{
@@ -66,7 +68,10 @@ private:
 		encode->SetDistancePerPulse(1);
 		shooterTime=new Timer();
 		feedTime = new Timer();
-
+		feederPID = new PIDController(1,1,1,encode,liftA,0.005);
+		feederPID->SetOutputRange(-130,-20);
+		feederPID->SetInputRange(-135,0);
+		feederPID->SetSetpoint(-20);
 	}
 
 	void AutonomousInit()
@@ -82,8 +87,9 @@ private:
 		//setting=-130;
 		cogX=SmartDashboard::GetNumber("COG_X", 0.0);
 		robot->TankDrive(0.6,0.6);
-		Wait(4);
-		robot->TankDrive(0.0,0.0);
+		if(time->HasPeriodPassed(4))
+			robot->TankDrive(0.0,0.0);
+		feederPID->SetSetpoint(-130);
 		/*if(encode->GetDistance() < setting-1){
 			//move the arm down
 			if((setting-1) - encode->GetDistance() < 2){
@@ -268,7 +274,7 @@ private:
 				liftB->Set(0);
 			}
 		}
-		if(doesEncoderWork)
+		if(false) // Set true to re-enable Kyle's parkinsons code
 		{
 			liftA->Set(0);
 			liftB->Set(0);
@@ -325,6 +331,23 @@ private:
 			}
 		}
 
+		if(true) //false to disable test PID controller
+		{
+			if(stick->GetRawAxis(2)>0.2)
+				feederPID->SetSetpoint(feederPID->GetSetpoint()-0.75);
+			if(stick->GetRawAxis(3)>0.2)
+				feederPID->SetSetpoint(feederPID->GetSetpoint()+0.75);
+			if(stick->GetRawButton(1))
+				feederPID->SetSetpoint(-130);
+			if(stick->GetRawButton(3))
+				feederPID->SetSetpoint(-20);
+			if(stick->GetRawButton(2))
+				feederPID->SetSetpoint(-130/2);
+			if(stick->GetRawButton(4))
+				feederPID->SetSetpoint(-90);
+			liftA->Set(feederPID->Get());
+			liftB->Set(feederPID->Get());
+		}
 
 		if(outputTime->HasPeriodPassed(1)) // Only returns true once every second
 		{
