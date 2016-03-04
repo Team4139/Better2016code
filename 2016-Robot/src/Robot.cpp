@@ -78,10 +78,29 @@ private:
 
 	void AutonomousPeriodic()
 	{
+		double speedMod=1;
+		//setting=-130;
 		cogX=SmartDashboard::GetNumber("COG_X", 0.0);
 		robot->TankDrive(0.6,0.6);
 		Wait(4);
 		robot->TankDrive(0.0,0.0);
+		/*if(encode->GetDistance() < setting-1){
+			//move the arm down
+			if((setting-1) - encode->GetDistance() < 2){
+				speedMod = ((setting-1) - encode->GetDistance())/2;
+			}
+			liftA->Set(0.4 * speedMod);
+			liftB->Set(-0.4 * speedMod);
+		}
+		if(encode->GetDistance() > setting+1){
+			//move the arm up
+			if(encode->GetDistance() - (setting+1) < 2){
+				speedMod = (encode->GetDistance() - (setting+1))/2;
+			}
+			liftA->Set(-0.4 * speedMod);
+			liftB->Set(0.4 * speedMod);
+		}*/
+
 		if(false) // put true here to run autonomous
 		{
 			switch(autoStage)
