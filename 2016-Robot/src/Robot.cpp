@@ -18,6 +18,7 @@ public:
 private:
 	RobotDrive* robot; // Robot drive system
 	Joystick* stick; // Joystick
+	Joystick* pad;   // The gamepad
 	Talon* shooter;  // Shooter wheel
 	Talon* feederA;  // First motor on feeder arm
 	Talon* feederB;  // Second motor on feeder arm
@@ -40,11 +41,14 @@ private:
 	int autoStage; // current stage of autonomous
 	float sonarDistance;
 	AnalogInput* sonic;
+	Timer* shooterTime;
+	PIDController* feederPID;
 
 	void RobotInit()
 	{
 		robot      = new RobotDrive(4,3,2,1);
 		stick      = new Joystick(5);
+		pad        = new Joystick(4);
 		shooter    = new Talon(8);
 		feederA    = new Talon(0);
 		feederB    = new Talon(9);
@@ -54,11 +58,15 @@ private:
 		encode     = new Encoder(0,1,false,Encoder::EncodingType::k4X);
 		outputTime = new Timer();
 		time       = new Timer();
+		setting    = 0;
 		sonic      = new AnalogInput(1); // 1 is temp value
 		FEED_DEADZONE=5; // DUMMY VALUE
 		robot->SetExpiration(0.1);
 		SmartDashboard::init();
 		encode->SetDistancePerPulse(1);
+		shooterTime=new Timer();
+		feedTime = new Timer();
+
 	}
 
 	void AutonomousInit()
@@ -71,6 +79,9 @@ private:
 	void AutonomousPeriodic()
 	{
 		cogX=SmartDashboard::GetNumber("COG_X", 0.0);
+		robot->TankDrive(0.6,0.6);
+		Wait(4);
+		robot->TankDrive(0.0,0.0);
 		if(false) // put true here to run autonomous
 		{
 			switch(autoStage)
@@ -132,7 +143,7 @@ private:
 	void TeleopInit()
 	{
 		shoot=false; // Whether or not the shooter wheel should be spinning
-		doesEncoderWork=false; // Default is false because I'm assuming it doesn't
+		doesEncoderWork=true; // Default is false because I'm assuming it doesn't
 		atTop=false; // True if the lifter arm has exceeded it's upper limit
 		atBottom=false; // True if the lifter arm has exceeded it's lower limit
 		encode->Reset(); // Resets the encoder distance to 0
@@ -141,14 +152,17 @@ private:
 		feedTime->Reset();
 		feedTime->Start();
 		top=0;
+		shooterTime->Reset();
+		shooterTime->Start();
+		setting=-20;
 	}
 
 	void TeleopPeriodic()
 	{
 		// ArcadeDrive: Axis 1 (Left stick up/down) is forward/back - Axis 4 (right stick left/right) is spin
-		robot->ArcadeDrive(stick->GetRawAxis(1), stick->GetRawAxis(4), false);
+		robot->ArcadeDrive(-stick->GetRawAxis(1), -stick->GetRawAxis(4), false);
 
-		int distance = encode->GetDistance();
+
 
 		if(stick->GetRawButton(7)){
 			bottom=encode->GetDistance();
@@ -160,13 +174,17 @@ private:
 
 		// feed: current state of feeder. 0: Not moving. 1: Taking ball in. 2: Taking ball out
 		int feed = 0;
-		if(stick->GetRawButton(1)){ // Button 1: A
+		if(pad->GetRawButton(2)){ // Button 1: A
 			feed=1;
 		}
-		if(stick->GetRawButton(2)){ // Button 2: B
+		if(pad->GetRawButton(3)){ // Button 2: B
 			feed=2;
 		}
-		if(stick->GetRawButton(3)){ // Button 3: X
+		if(pad->GetRawButton(4))
+		{
+			feed=1;
+		}
+		if(!pad->GetRawButton(3)&&pad->GetRawButton(4)&&!pad->GetRawButton(5)){ // Button 3: X
 			feed=0;
 		}
 		if(feed==1)
@@ -191,7 +209,7 @@ private:
 			feederC->Set(0);
 		}
 
-
+		/*
 		if(stick->GetRawButton(4)) // Button 4: Y
 		{
 			shoot=!shoot; // Toggle state of 'shoot'
@@ -201,6 +219,14 @@ private:
 			shooter->Set(-0.8); // Sets to 80% power (negative is forward on this motor)
 		if(!shoot)
 			shooter->Set(0); // Sets to 0% power
+		 */
+
+
+
+		if(pad->GetRawButton(5))
+			shooter->Set(-0.60);
+		if(!pad->GetRawButton(5))
+			shooter->Set(0);
 
 		if(!doesEncoderWork)
 		{
@@ -225,40 +251,54 @@ private:
 		}
 		if(doesEncoderWork)
 		{
-			double setting;
-			if(stick->GetRawAxis(2)>0.2&&!atBottom) // If left trigger is pressed more than 20% of full depression
+			liftA->Set(0);
+			liftB->Set(0);
+			if(stick->GetRawAxis(2)>0.2) // If left trigger is pressed more than 20% of full depression
 			{
 				// Move feeder arm down
-				liftA->Set(0.25*stick->GetRawAxis(2));
-				liftB->Set(-0.25*stick->GetRawAxis(2)); // liftB is opposite of liftA
-				setting=encode->GetDistance();
+				setting -= 0.75;
 			}
-			if(stick->GetRawAxis(3)>0.2&&!atTop) // If right trigger is pressed more than 20% of full depression
+			if(stick->GetRawAxis(3)>0.2) // If right trigger is pressed more than 20% of full depression
 			{
 				// Move feeder arm up
-				liftA->Set(-0.25*stick->GetRawAxis(3));
-				liftB->Set(0.25*stick->GetRawAxis(3));
-				setting=encode->GetDistance();
+				setting += 0.75;
 			}
-			if(stick->GetRawAxis(3)<0.2 && stick->GetRawAxis(2)<0.2) // If neither trigger is pressed more than 20%
-			{
-				// Set feeder arm to not move up/down
-				double current = encode->GetDistance();
-				if(current>setting-FEED_DEADZONE)
-				{
-					liftA->Set(-0.1*stick->GetRawAxis(3));
-					liftB->Set(0.1*stick->GetRawAxis(3));
-				}
-				if(current<=setting-FEED_DEADZONE)
-				{
-					liftA->Set(0.0);
-					liftB->Set(0.0);
-				}
+			if(stick->GetRawButton(1))
+				setting=-130;
+			int speedMod = 1;
+			if(stick->GetRawButton(3)){
+				setting=-20;
 			}
-			if(encode->GetDistance()>=top)
+			if(stick->GetRawButton(2))
+				setting=-130/2;
+			if(stick->GetRawButton(4))
+				setting=90;
+			if(encode->GetDistance() < setting-1){
+				//move the arm down
+				if((setting-1) - encode->GetDistance() < 2){
+					speedMod = ((setting-1) - encode->GetDistance())/2;
+				}
+				liftA->Set(0.4 * speedMod);
+				liftB->Set(-0.4 * speedMod);
+			}
+			if(encode->GetDistance() > setting+1){
+				//move the arm up
+				if(encode->GetDistance() - (setting+1) < 2){
+					speedMod = (encode->GetDistance() - (setting+1))/2;
+				}
+				liftA->Set(-0.4 * speedMod);
+				liftB->Set(0.4 * speedMod);
+			}
+			/*if(encode->GetDistance()>top){
 				atTop=true;
-			if(encode->GetDistance()<=bottom)
+				liftA->Set(0);
+				liftB->Set(0);
+			}
+			if(encode->GetDistance()<bottom){
 				atBottom=true;
+				liftA->Set(0);
+				liftB->Set(0);
+			}*/
 			if(encode->GetDistance()<top&&encode->GetDistance()>bottom)
 			{
 				atTop=false;
@@ -276,8 +316,9 @@ private:
 			if(atBottom)
 				std::cout<<"The lifter arm has exceeded it's lower limit!"<<std::endl;
 			std::cout<<"Top is: "<<top<<std::endl<<"Bottom is: "<<bottom<<std::endl;
+			outputTime->Reset();
 		}
-
+		std::cout<<encode->GetDistance()<<":"<<setting<<std::endl;
 		Wait(0.005);
 	}
 };
