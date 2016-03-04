@@ -83,7 +83,7 @@ private:
 
 	void AutonomousPeriodic()
 	{
-		double speedMod=1;
+		//double speedMod=1;
 		//setting=-130;
 		cogX=SmartDashboard::GetNumber("COG_X", 0.0);
 		robot->TankDrive(0.6,0.6);
