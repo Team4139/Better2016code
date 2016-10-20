@@ -47,6 +47,7 @@ private:
 	int timesRun;             // Pretty sure this was unused
 	void RobotInit()
 	{
+		//  Initializing motorcontrollers (the parameters are the port numbers)
 		robot      = new RobotDrive(4,3,2,1);
 		stick      = new Joystick(5);
 		pad        = new Joystick(4);
@@ -65,48 +66,49 @@ private:
 		robot->SetExpiration(0.1);
 		SmartDashboard::init();
 		encode->SetDistancePerPulse(1);
-		shooterTime=new Timer();
-		feedTime = new Timer();
-		feederPID = new PIDController(5,3,3,encode,liftA,0.005);
+		shooterTime = new Timer();
+		feedTime    = new Timer();
+		feederPID   = new PIDController(5,3,3,encode,liftA,0.005);
 		feederPID->SetOutputRange(-130,-20);
 		feederPID->SetInputRange(-135,0);
 		feederPID->SetSetpoint(-20);
 		button1 = new DigitalInput(6);
 		button2 = new DigitalInput(5);
 		timesRun=0;
-		encode->Reset();
+		encode->Reset(); // Start off the robot at 0 time
 	}
 	void TestInit()
 	{
+		// Reset the timer for TestPeriodic()
 		time->Stop();
 		time->Reset();
 		time->Start();
 	}
 	void TestPeriodic()
 	{
-		if(time->HasPeriodPassed(0.5))
+		if(time->HasPeriodPassed(0.5)) // Display output for a few controls and sensors
 		{
-			time->Reset();
+			time->Reset(); // Reset the timer so that output will print more than once
 			std::cout<<"Button 1: "<<button1->Get()<<" | Button 2: "<<button2->Get()<<" | Sonar: "<<sonic->GetVoltage()*0.125<<std::endl;
 		}
 	}
 	void AutonomousInit()
 	{
+		// Reset the timer for AutonomousPeriodic()
 		time->Stop();
 		time->Reset();
 		time->Start();
-		autoStage=0;
-		encode->Reset();
+		autoStage=0; // Set the autonomous to stage 1
+		encode->Reset(); // "Zeroing" the encoder
 		feederPID->SetSetpoint(0); // Set the lifter to horizontal (for PID system)
 	}
 	void AutonomousPeriodic()
 	{
 		double speedMod=1;
 		setting=0; // Set the lifter to horizontal (for parkinson's system)
-		cogX=SmartDashboard::GetNumber("COG_X", 0.0);
-		std::cout<<"Button 1: "<<button1->Get()<<" | Button 2: "<<button2->Get()<<" | Sonar: "<<sonic->GetVoltage()*0.125<<std::endl;
-		if(true){ // Set true to run autonomous (NO VISION VERSION)
-			if(encode->GetDistance() < setting-1){
+		cogX=SmartDashboard::GetNumber("COG_X", 0.0); // Get the X coordinate of the tracked object from the computer vision system (nonfunctional)
+		// Autonomous code (No vision support)
+			if(encode->GetDistance() < setting-1){ // If the arm is above the current setting
 				//move the arm down
 				if((setting-1) - encode->GetDistance() < 2){
 					speedMod = ((setting-1) - encode->GetDistance())/2;
@@ -114,7 +116,7 @@ private:
 				liftA->Set(0.4 * speedMod);
 				liftB->Set(-0.4 * speedMod);
 			}
-			if(encode->GetDistance() > setting+1){
+			if(encode->GetDistance() > setting+1){ // If the arm is below the current setting
 				//move the arm up
 				if(encode->GetDistance() - (setting+1) < 2){
 					speedMod = (encode->GetDistance() - (setting+1))/2;
@@ -123,75 +125,18 @@ private:
 				liftB->Set(0.4 * speedMod);
 			}
 			switch(autoStage){
-			case 0:
+				case 0:
 				setting=0; // Set lifter to horizontal
-				autoStage++;
+				autoStage++; // Move on to the next stage
 				break;
-			case 1:
+				case 1:
 				robot->TankDrive(1,1); // drive forward at 80% power
 				if(time->HasPeriodPassed(7)){ // Wait for 7 seconds
 				robot->TankDrive(0.0,0.0); // Stop the robot
-				autoStage++;
-				setting=-20;
-				}
-				break;
+				autoStage++; // Moves stage counter beyond range of switch, ending autonomous
+				setting=-20; // I think -20 is vertical, so it sets the arm to be veritcal
 			}
-		}
-		if(false) // put true here to run autonomous (VISION VERSION)
-		{
-			switch(autoStage)
-			{
-			case 0: // Initial stuff
-				// something to get the feeder off the ground or something
-				autoStage++;
-				break;
-			case 1: // Move forward for 5 seconds
-				robot->TankDrive(0.5, 0.5);
-				if(time->Get()>5)
-				{
-					autoStage++;
-					robot->TankDrive(0.0,0.0);
-					time->Reset();
-				}
-				break;
-			case 2: // Spin until the robot is pointing at the goal
-				if(cogX>165||cogX<155)
-					robot->TankDrive(0.2,-0.2);
-				if(!(cogX>165||cogX<155))
-					robot->TankDrive(0.0,0.0);
-				autoStage++;
-				break;
-			case 3: // Move forward until close enough to the goal
-				if(false) // Put true here if there is a sonar
-				{
-					sonarDistance=sonic->GetVoltage()/8;
-					if(sonarDistance>100) // 100 is a temp value
-						robot->TankDrive(0.3,0.3);
-					else if(sonarDistance<=100) // 100 is a temp value
-						robot->TankDrive(0.0,0.0);
-					if(cogX>165||cogX<155)
-					{
-						autoStage=2;
-						break;
-					}
-				}
-				autoStage++;
-				break;
-			case 4: // Fire the ball
-				shooter->Set(-0.8);
-				time->Reset();
-				if(time->HasPeriodPassed(10))
-				{
-					feederC->Set(0.4);
-					time->Reset();
-					if(time->HasPeriodPassed(1))
-					{
-						feederC->Set(0);
-						shooter->Set(0);
-					}
-				}
-				break;
-			}
+			break;
 		}
 		Wait(0.005);
 	}
@@ -201,12 +146,10 @@ private:
 		doesEncoderWork=true; // Default is false because I'm assuming it doesn't
 		atTop=false;          // True if the lifter arm has exceeded it's upper limit
 		atBottom=false;       // True if the lifter arm has exceeded it's lower limit
-		//encode->Reset();    // Resets the encoder distance to 0
 		outputTime->Reset();  // Resets the timer for the printing section
 		outputTime->Start();  // Starts the timer for the printing section
 		feedTime->Reset();    // Resets the timer for the intakes
 		feedTime->Start();    // Starts the timer for the intakes
-		//top=0;              // I got rid of this for a reason
 		shooterTime->Reset(); // Resets the timer for the shooter wheel
 		shooterTime->Start(); // Starts the timer for the shooter wheel
 		setting=-20;          // Sets the lifter to vertical, from slightly back at robotinit
@@ -215,25 +158,22 @@ private:
 	{
 		// ArcadeDrive: Axis 1 (Left stick up/down) is forward/back - Axis 4 (right stick left/right) is spin
 		robot->ArcadeDrive(-stick->GetRawAxis(1), -stick->GetRawAxis(4), false); // Move robot based on input from the joysticks (negative because they built the robot backwards
-		if(stick->GetRawButton(7)){ // Calibrates the bottom to current when 'START' button is pressed
+		if(stick->GetRawButton(7)){ 		// Calibrates the bottom to current when 'START' button is pressed
 			bottom=encode->GetDistance();
 		}
-		if(stick->GetRawButton(8)){ // Calibrates the top to current when 'BACK' button is pressed
+		if(stick->GetRawButton(8)){ 		// Calibrates the top to current when 'BACK' button is pressed
 			top=encode->GetDistance();
 		}
 		// feed: current state of feeder. 0: Not moving. 1: Taking ball in. 2: Taking ball out
-		int feed = 0;
-		if(pad->GetRawButton(2)){ // Button 1: A
-			feed=1;
+		int feed = 0; 						// Initialize the feeder to not move
+		if(pad->GetRawButton(3)){ 				// Button 3: The "out" button on the custom controller
+			feed=2; 					// Set the feeder to push the ball out
 		}
-		if(pad->GetRawButton(3)){ // Button 2: B
-			feed=2;
+		if(pad->GetRawButton(4)){ 				// Button 4: The "in" button on the custom controller
+			feed=1; 					// Set the feeder to pull the ball in
 		}
-		if(pad->GetRawButton(4)){ // Button 4: Y
-			feed=1;
-		}
-		if(!pad->GetRawButton(3)&&pad->GetRawButton(4)&&!pad->GetRawButton(5)){ // Button 3: X
-			feed=0;
+		if(!pad->GetRawButton(3)&&!pad->GetRawButton(4)){ 	// If neither feeder buttons are pushed
+			feed=0; 					// Set the feeder to not move
 		}
 		if(feed==1)
 		{
@@ -256,11 +196,11 @@ private:
 			feederB->Set(0);
 			feederC->Set(0);
 		}
-		if(pad->GetRawButton(5)) // Feeder on/off switch on control board
-			shooter->Set(-0.60);
-		if(!pad->GetRawButton(5))
-			shooter->Set(0);
-		if(!doesEncoderWork) // Runs if the encoder does not work
+		if(pad->GetRawButton(5))        // If the shooter switch is set to on
+			shooter->Set(-0.60); 	// Set the shooter to run at 60% power 
+		if(!pad->GetRawButton(5)) 	// If the shooter switch is set to off
+			shooter->Set(0);	// Set the shooter to off
+		if(!doesEncoderWork) 		// Runs if the encoder does not work
 		{
 			if(stick->GetRawAxis(2)>0.2) // If left trigger is pressed more than 20% of full depression
 			{
@@ -281,69 +221,50 @@ private:
 				liftB->Set(0);
 			}
 		}
-		if(true) // Set true to re-enable Kyle's parkinsons code
+		// Kyle's Parkinsons Code
+		liftA->Set(0);
+		liftB->Set(0);
+		int speedMod = 1;
+		if(stick->GetRawAxis(2)>0.2) // If left trigger is pressed more than 20% of full depression
 		{
-			liftA->Set(0);
-			liftB->Set(0);
-			if(stick->GetRawAxis(2)>0.2) // If left trigger is pressed more than 20% of full depression
-			{
-				// Move feeder arm down
-				setting -= 0.75;
-			}
-			if(stick->GetRawAxis(3)>0.2) // If right trigger is pressed more than 20% of full depression
-			{
-				// Move feeder arm up
-				setting += 0.75;
-			}
-			if(stick->GetRawButton(1))
-				setting=-130;
-			int speedMod = 1;
-			if(stick->GetRawButton(3)){
-				setting=-20;
-			}
-			if(stick->GetRawButton(2))
-				setting=-130/2;
-			if(stick->GetRawButton(4))
-				setting=90;
-			if(encode->GetDistance() < setting-1){
-				//move the arm down
-				if((setting-1) - encode->GetDistance() < 2){
-					speedMod = ((setting-1) - encode->GetDistance())/2;
-				}
-				liftA->Set(0.4 * speedMod);
-				liftB->Set(-0.4 * speedMod);
-			}
-			if(encode->GetDistance() > setting+1){
-				//move the arm up
-				if(encode->GetDistance() - (setting+1) < 2){
-					speedMod = (encode->GetDistance() - (setting+1))/2;
-				}
-				liftA->Set(-0.4 * speedMod);
-				liftB->Set(0.4 * speedMod);
-			}
-			if(encode->GetDistance()<top&&encode->GetDistance()>bottom)
-			{
-				atTop=false;
-				atBottom=false;
-			}
+			// Move feeder arm down
+			setting -= 0.75;
 		}
-		if(false) //false to disable test PID controller
+		if(stick->GetRawAxis(3)>0.2) // If right trigger is pressed more than 20% of full depression
 		{
-			if(stick->GetRawAxis(2)>0.2)
-				feederPID->SetSetpoint(feederPID->GetSetpoint()-0.75);
-			if(stick->GetRawAxis(3)>0.2)
-				feederPID->SetSetpoint(feederPID->GetSetpoint()+0.75);
-			if(stick->GetRawButton(1))
-				feederPID->SetSetpoint(-130);
-			if(stick->GetRawButton(3))
-				feederPID->SetSetpoint(-20);
-			if(stick->GetRawButton(2))
-				feederPID->SetSetpoint(-130/2);
-			if(stick->GetRawButton(4))
-				feederPID->SetSetpoint(-90);
-			liftA->Set(feederPID->Get());
-			liftB->Set(feederPID->Get());
+			// Move feeder arm up
+			setting += 0.75;
 		}
+		if(stick->GetRawButton(1)) // Maps A,B,X,Y buttons on controller to different presets for the feeder arm
+			setting=-130;
+		if(stick->GetRawButton(3))
+			setting=-20;
+		if(stick->GetRawButton(2))
+			setting=-130/2;
+		if(stick->GetRawButton(4))
+			setting=90;
+		if(encode->GetDistance() < setting-1){ // If the arm is above where it should be
+			//move the arm down
+			if((setting-1) - encode->GetDistance() < 2){
+				speedMod = ((setting-1) - encode->GetDistance())/2; // Some maths to figure out approximatly how fast the arm should move to not go full seizure mode
+			}
+			liftA->Set(0.4 * speedMod);
+			liftB->Set(-0.4 * speedMod);
+		}
+		if(encode->GetDistance() > setting+1){ // If the arm is below where it should be
+			//move the arm up
+			if(encode->GetDistance() - (setting+1) < 2){
+				speedMod = (encode->GetDistance() - (setting+1))/2; // Some maths to figure out approximatly how fast the arm should move to not go full seizure mode
+			}
+			liftA->Set(-0.4 * speedMod);
+			liftB->Set(0.4 * speedMod);
+		}
+		if(encode->GetDistance()<top&&encode->GetDistance()>bottom)
+		{
+			atTop=false;
+			atBottom=false;
+		}
+
 		if(outputTime->HasPeriodPassed(1)) // Only returns true once every second
 		{
 			if(doesEncoderWork) // Output current measured distance of the encoder
